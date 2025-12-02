@@ -31,11 +31,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("weather") {
-                            WeatherScreen(
-                                cityName = "Lisboa",
-                                lat = 38.71,
-                                lon = -9.14
-                            )
+                            WeatherScreen()
                         }
                     }
                 }

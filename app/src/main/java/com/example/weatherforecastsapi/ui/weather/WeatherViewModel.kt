@@ -79,4 +79,41 @@ class WeatherViewModel : ViewModel() {
             }
         })
     }
+
+    // Função que recebe apenas o nome da cidade e escolhe as coordenadas
+    fun fetchWeather(cityName: String) {
+        val city = cityName.trim()
+
+        val (lat, lon) = when (city.lowercase()) {
+            "viana do castelo" -> 41.69 to -8.83
+            "braga" -> 41.55 to -8.42
+            "vila real" -> 41.30 to -7.74
+            "bragança", "braganca" -> 41.80 to -6.76
+            "porto" -> 41.15 to -8.61
+            "aveiro" -> 40.64 to -8.65
+            "viseu" -> 40.66 to -7.91
+            "guarda" -> 40.54 to -7.27
+            "coimbra" -> 40.21 to -8.43
+            "castelo branco" -> 39.82 to -7.49
+            "leiria" -> 39.74 to -8.81
+            "santarém", "santarem" -> 39.23 to -8.68
+            "lisboa", "lisbon" -> 38.71 to -9.14
+            "setúbal", "setubal" -> 38.52 to -8.89
+            "portalegre" -> 39.29 to -7.43
+            "évora", "evora" -> 38.57 to -7.91
+            "beja" -> 38.01 to -7.86
+            "faro" -> 37.02 to -7.93
+            "funchal" -> 32.65 to -16.91
+            "ponta delgada" -> 37.74 to -25.67
+            else -> {
+                uiState.value = uiState.value.copy(
+                    isLoading = false,
+                    error = "Cidade desconhecida: $city"
+                )
+                return
+            }
+        }
+
+        fetchWeather(city, lat, lon)
+    }
 }
