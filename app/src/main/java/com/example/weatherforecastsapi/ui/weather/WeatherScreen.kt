@@ -1,14 +1,11 @@
 package com.example.weatherforecastsapi.ui.weather
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -19,50 +16,50 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+val cities = mapOf(
+    "Viana do Castelo" to (41.69 to -8.83),
+    "Braga" to (41.55 to -8.42),
+    "Vila Real" to (41.30 to -7.74),
+    "Bragança" to (41.80 to -6.75),
+    "Porto" to (41.15 to -8.61),
+    "Aveiro" to (40.64 to -8.65),
+    "Viseu" to (40.66 to -7.91),
+    "Guarda" to (40.53 to -7.26),
+    "Coimbra" to (40.21 to -8.41),
+    "Castelo Branco" to (39.82 to -7.49),
+    "Leiria" to (39.74 to -8.80),
+    "Santarém" to (39.23 to -8.68),
+    "Lisboa" to (38.71 to -9.14),
+    "Setúbal" to (38.52 to -8.89),
+    "Portalegre" to (39.29 to -7.43),
+    "Évora" to (38.57 to -7.91),
+    "Beja" to (38.01 to -7.86),
+    "Faro" to (37.01 to -7.93),
+    "Funchal" to (32.65 to -16.90),
+    "Ponta Delgada" to (37.74 to -25.67)
+)
 
 @Composable
-fun WeatherScreen() {
-    // 1. Obter o ViewModel
-    val viewModel: WeatherViewModel = viewModel()
-    // 2. Ler o estado atual
-    val uiState by viewModel.uiState
+fun WeatherScreen(
+    uiState: WeatherState,
+    onUpdateCity: (String, Double, Double) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedCityName by remember { mutableStateOf("Lisboa") }
 
-    // 2.1 Cidade selecionada pelo utilizador (capitais de distrito)
-    val cities = listOf(
-        "Viana do Castelo",
-        "Braga",
-        "Vila Real",
-        "Bragança",
-        "Porto",
-        "Aveiro",
-        "Viseu",
-        "Guarda",
-        "Coimbra",
-        "Castelo Branco",
-        "Leiria",
-        "Santarém",
-        "Lisboa",
-        "Setúbal",
-        "Portalegre",
-        "Évora",
-        "Beja",
-        "Faro",
-        "Funchal",
-        "Ponta Delgada"
-    )
-    var selectedCity = remember { mutableStateOf(cities.first()) }
-    var expanded = remember { mutableStateOf(false) }
-
-    // 3. Assim que o ecrã abre, pedir os dados da cidade inicial
     LaunchedEffect(Unit) {
-        viewModel.fetchWeather(selectedCity.value)
+        val (lat, lon) = cities[selectedCityName]!!
+        onUpdateCity(selectedCityName, lat, lon)
     }
 
-    // 4. Desenhar o ecrã consoante o estado
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -73,35 +70,38 @@ fun WeatherScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (uiState.isLoading) {
-                CircularProgressIndicator() // Rodinha a carregar
-            }
-            else if (uiState.error != null) {
+                CircularProgressIndicator()
+            } else if (uiState.error != null) {
                 Text(text = "Ocorreu um erro: ${uiState.error}")
-            }
-            else {
-                // Se tivermos dados, mostramos o cartão que criámos no Passo 3
+            } else {
                 uiState.weather?.let { weatherData ->
                     WeatherRow(weather = weatherData)
+
+                    val formattedDate = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                        .format(Date(weatherData.lastUpdated))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "Última atualização online: $formattedDate")
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(onClick = { expanded.value = true }) {
-                Text(text = "Cidade: ${selectedCity.value}")
+            Button(onClick = { expanded = true }) {
+                Text(text = "Cidade: $selectedCityName")
             }
 
             DropdownMenu(
-                expanded = expanded.value,
-                onDismissRequest = { expanded.value = false }
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
             ) {
-                cities.forEach { city ->
+                cities.keys.forEach { city ->
                     DropdownMenuItem(
                         text = { Text(text = city) },
                         onClick = {
-                            selectedCity.value = city
-                            expanded.value = false
-                            viewModel.fetchWeather(city)
+                            selectedCityName = city
+                            expanded = false
+                            val (lat, lon) = cities[city]!!
+                            onUpdateCity(city, lat, lon)
                         }
                     )
                 }

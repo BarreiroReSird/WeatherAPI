@@ -1,119 +1,122 @@
 package com.example.weatherforecastsapi.ui.weather
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.weatherforecastsapi.data.WeatherDao
 import com.example.weatherforecastsapi.models.CityWeather
-import okhttp3.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
 
-// 1. Definimos os estados possíveis do nosso ecrã
 data class WeatherState(
-    val weather: CityWeather? = null, // Os dados do tempo (pode ser nulo no início)
-    val isLoading: Boolean = false,   // Se estamos a carregar
-    val error: String? = null         // Se houve erro
+    val weather: CityWeather? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
-class WeatherViewModel : ViewModel() {
+class WeatherViewModel(private val weatherDao: WeatherDao) : ViewModel() {
 
-    // 2. Variável que a UI vai "observar". Quando isto muda, o ecrã redesenha-se.
-    var uiState = mutableStateOf(WeatherState())
-        private set
+    // Mapa com todas as cidades e respetivas coordenadas para pré-carregamento
+    private val cityCoordinates: Map<String, Pair<Double, Double>> = mapOf(
+        "Viana do Castelo" to (41.69 to -8.83),
+        "Braga" to (41.55 to -8.42),
+        "Vila Real" to (41.30 to -7.74),
+        "Bragança" to (41.80 to -6.75),
+        "Porto" to (41.15 to -8.61),
+        "Aveiro" to (40.64 to -8.65),
+        "Viseu" to (40.66 to -7.91),
+        "Guarda" to (40.53 to -7.26),
+        "Coimbra" to (40.21 to -8.41),
+        "Castelo Branco" to (39.82 to -7.49),
+        "Leiria" to (39.74 to -8.80),
+        "Santarém" to (39.23 to -8.68),
+        "Lisboa" to (38.71 to -9.14),
+        "Setúbal" to (38.52 to -8.89),
+        "Portalegre" to (39.29 to -7.43),
+        "Évora" to (38.57 to -7.91),
+        "Beja" to (38.01 to -7.86),
+        "Faro" to (37.01 to -7.93),
+        "Funchal" to (32.65 to -16.90),
+        "Ponta Delgada" to (37.74 to -25.67)
+    )
 
-    // 3. Função para ir buscar o tempo à Open-Meteo
-    fun fetchWeather(cityName: String, lat: Double, lon: Double) {
-        // Antes de começar, dizemos à UI que estamos a carregar
-        uiState.value = uiState.value.copy(isLoading = true, error = null)
+    private val _currentCity = MutableStateFlow("Lisboa")
 
-        val client = OkHttpClient()
-        // URL da API Open-Meteo (Gratuita)
+    val uiState: StateFlow<WeatherState> = _currentCity.flatMapLatest { city ->
+        weatherDao.getWeatherFlow(city).map { weatherData ->
+            WeatherState(
+                weather = weatherData,
+                isLoading = false,
+                error = null
+            )
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = WeatherState(isLoading = true)
+    )
+
+    init {
+        // Pré-carrega todas as cidades assim que o ViewModel é criado
+        preloadAllCities()
+    }
+
+    fun updateCity(cityName: String, lat: Double, lon: Double) {
+        _currentCity.value = cityName
+        fetchWeatherFromApi(cityName, lat, lon)
+    }
+
+    private fun preloadAllCities() {
+        // Para cada cidade definida, tenta ir buscar dados e gravar na base de dados
+        cityCoordinates.forEach { (name, coords) ->
+            val (lat, lon) = coords
+            fetchWeatherFromApi(name, lat, lon)
+        }
+    }
+
+    private fun fetchWeatherFromApi(cityName: String, lat: Double, lon: Double) {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current_weather=true"
-
+        val client = OkHttpClient()
         val request = Request.Builder().url(url).build()
 
-        // Fazemos a chamada assíncrona (em background)
-        client.newCall(request).enqueue(object : Callback {
-
-            // Caso falhe (sem internet, etc)
-            override fun onFailure(call: Call, e: IOException) {
-                uiState.value = uiState.value.copy(
-                    isLoading = false,
-                    error = e.message
-                )
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                // Handle failure
             }
 
-            // Caso tenhamos resposta do servidor
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        uiState.value = uiState.value.copy(isLoading = false, error = "Erro API")
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                response.use { res ->
+                    if (!res.isSuccessful) {
+                        // Handle error
                         return
                     }
 
-                    // Ler o JSON recebido
-                    val jsonString = response.body!!.string()
+                    val jsonString = res.body!!.string()
                     val jsonObject = JSONObject(jsonString)
 
-                    // A API devolve um objeto chamado "current_weather"
                     if (jsonObject.has("current_weather")) {
                         val current = jsonObject.getJSONObject("current_weather")
-                        val temp = current.getDouble("temperature")
-                        val wind = current.getDouble("windspeed")
-
-                        // Criar o nosso objeto CityWeather
                         val weatherData = CityWeather(
                             cityName = cityName,
-                            temperature = temp,
-                            windSpeed = wind,
+                            temperature = current.getDouble("temperature"),
+                            windSpeed = current.getDouble("windspeed"),
                             latitude = lat,
                             longitude = lon
                         )
-
-                        // Atualizar a UI com os dados novos
-                        uiState.value = uiState.value.copy(
-                            isLoading = false,
-                            weather = weatherData
-                        )
+                        viewModelScope.launch {
+                            weatherDao.insertWeather(weatherData)
+                        }
                     }
                 }
             }
         })
-    }
-
-    // Função que recebe apenas o nome da cidade e escolhe as coordenadas
-    fun fetchWeather(cityName: String) {
-        val city = cityName.trim()
-
-        val (lat, lon) = when (city.lowercase()) {
-            "viana do castelo" -> 41.69 to -8.83
-            "braga" -> 41.55 to -8.42
-            "vila real" -> 41.30 to -7.74
-            "bragança", "braganca" -> 41.80 to -6.76
-            "porto" -> 41.15 to -8.61
-            "aveiro" -> 40.64 to -8.65
-            "viseu" -> 40.66 to -7.91
-            "guarda" -> 40.54 to -7.27
-            "coimbra" -> 40.21 to -8.43
-            "castelo branco" -> 39.82 to -7.49
-            "leiria" -> 39.74 to -8.81
-            "santarém", "santarem" -> 39.23 to -8.68
-            "lisboa", "lisbon" -> 38.71 to -9.14
-            "setúbal", "setubal" -> 38.52 to -8.89
-            "portalegre" -> 39.29 to -7.43
-            "évora", "evora" -> 38.57 to -7.91
-            "beja" -> 38.01 to -7.86
-            "faro" -> 37.02 to -7.93
-            "funchal" -> 32.65 to -16.91
-            "ponta delgada" -> 37.74 to -25.67
-            else -> {
-                uiState.value = uiState.value.copy(
-                    isLoading = false,
-                    error = "Cidade desconhecida: $city"
-                )
-                return
-            }
-        }
-
-        fetchWeather(city, lat, lon)
     }
 }
