@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.weatherforecastsapi.models.CityWeather
 
-@Database(entities = [CityWeather::class], version = 1, exportSchema = false)
+@Database(entities = [CityWeather::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun weatherDao(): WeatherDao
@@ -21,7 +21,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "weather_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

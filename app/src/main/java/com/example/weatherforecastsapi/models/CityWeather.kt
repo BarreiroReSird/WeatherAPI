@@ -10,5 +10,7 @@ data class CityWeather(
     val windSpeed: Double,
     val latitude: Double,
     val longitude: Double,
+    val weatherCode: Int,
+    val conditionDescription: String,
     val lastUpdated: Long = System.currentTimeMillis()
 )

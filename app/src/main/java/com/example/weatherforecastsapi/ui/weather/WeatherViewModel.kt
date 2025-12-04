@@ -24,7 +24,6 @@ data class WeatherState(
 
 class WeatherViewModel(private val weatherDao: WeatherDao) : ViewModel() {
 
-    // Mapa com todas as cidades e respetivas coordenadas para pré-carregamento
     private val cityCoordinates: Map<String, Pair<Double, Double>> = mapOf(
         "Viana do Castelo" to (41.69 to -8.83),
         "Braga" to (41.55 to -8.42),
@@ -65,7 +64,6 @@ class WeatherViewModel(private val weatherDao: WeatherDao) : ViewModel() {
     )
 
     init {
-        // Pré-carrega todas as cidades assim que o ViewModel é criado
         preloadAllCities()
     }
 
@@ -75,7 +73,6 @@ class WeatherViewModel(private val weatherDao: WeatherDao) : ViewModel() {
     }
 
     private fun preloadAllCities() {
-        // Para cada cidade definida, tenta ir buscar dados e gravar na base de dados
         cityCoordinates.forEach { (name, coords) ->
             val (lat, lon) = coords
             fetchWeatherFromApi(name, lat, lon)
@@ -89,13 +86,11 @@ class WeatherViewModel(private val weatherDao: WeatherDao) : ViewModel() {
 
         client.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
-                // Handle failure
             }
 
             override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
                 response.use { res ->
                     if (!res.isSuccessful) {
-                        // Handle error
                         return
                     }
 
@@ -104,12 +99,16 @@ class WeatherViewModel(private val weatherDao: WeatherDao) : ViewModel() {
 
                     if (jsonObject.has("current_weather")) {
                         val current = jsonObject.getJSONObject("current_weather")
+                        val code = current.getInt("weathercode")
+                        val description = getConditionDescription(code)
                         val weatherData = CityWeather(
                             cityName = cityName,
                             temperature = current.getDouble("temperature"),
                             windSpeed = current.getDouble("windspeed"),
                             latitude = lat,
-                            longitude = lon
+                            longitude = lon,
+                            weatherCode = code,
+                            conditionDescription = description
                         )
                         viewModelScope.launch {
                             weatherDao.insertWeather(weatherData)
@@ -118,5 +117,20 @@ class WeatherViewModel(private val weatherDao: WeatherDao) : ViewModel() {
                 }
             }
         })
+    }
+
+    private fun getConditionDescription(code: Int): String {
+        return when (code) {
+            0 -> "Céu limpo"
+            1, 2 -> "Maioritariamente limpo"
+            3 -> "Nublado"
+            45, 48 -> "Nevoeiro"
+            51, 53, 55 -> "Chuvisco"
+            61, 63, 65 -> "Chuva"
+            71, 73, 75 -> "Neve"
+            80, 81, 82 -> "Aguaceiros"
+            95, 96, 99 -> "Trovoada"
+            else -> "Condição desconhecida"
+        }
     }
 }
