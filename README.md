@@ -13,6 +13,16 @@ This is a simple Android application that displays the current weather for selec
 - **Modern UI:** The user interface is built entirely with Jetpack Compose.
 - **Last Updated Timestamp:** Shows when the weather data was last successfully fetched from the API.
 
+## 🏛️ Application Architecture
+
+The application follows the MVVM (Model-View-ViewModel) architectural pattern.
+
+-   **UI (View):** Built with Jetpack Compose (`MainActivity.kt`, `WeatherScreen.kt`, `AboutScreen.kt`). The UI observes the state exposed by the `WeatherViewModel` and renders the weather information.
+-   **ViewModel (`WeatherViewModel.kt`):** Acts as a bridge between the UI and the data layer. It holds the application's state, fetches data from the repository, and exposes it to the UI.
+-   **Repository/Data Layer:** This layer is responsible for fetching data. It consists of:
+    -   **Remote Data Source:** Fetches live weather data from the Open-Meteo API using OkHttp (`WeatherViewModel.kt`).
+    -   **Local Data Source:** Caches weather data in a Room database (`AppDatabase.kt`, `WeatherDao.kt`).
+
 ## 🛠️ Built With
 
 - **[Kotlin](https://kotlinlang.org/):** The primary programming language.
@@ -46,6 +56,16 @@ Esta é uma aplicação Android simples que mostra a previsão do tempo atual pa
 - **Integração com API:** Obtém dados meteorológicos em tempo real da [API Open-Meteo](https://open-meteo.com/).
 - **UI Moderna:** A interface do utilizador é construída inteiramente com Jetpack Compose.
 - **Carimbo de Data/Hora da Última Atualização:** Mostra quando os dados meteorológicos foram obtidos com sucesso da API pela última vez.
+
+## 🏛️ Arquitetura da Aplicação
+
+A aplicação segue o padrão de arquitetura MVVM (Model-View-ViewModel).
+
+-   **UI (View):** Construída com Jetpack Compose (`MainActivity.kt`, `WeatherScreen.kt`, `AboutScreen.kt`). A UI observa o estado exposto pelo `WeatherViewModel` e renderiza a informação meteorológica.
+-   **ViewModel (`WeatherViewModel.kt`):** Atua como uma ponte entre a UI e a camada de dados. Contém o estado da aplicação, busca dados do repositório e expõe-nos à UI.
+-   **Camada de Dados/Repositório:** Esta camada é responsável por obter os dados. Consiste em:
+    -   **Fonte de Dados Remota:** Obtém dados meteorológicos em tempo real da API Open-Meteo usando OkHttp (`WeatherViewModel.kt`).
+    -   **Fonte de Dados Local:** Armazena dados meteorológicos em cache numa base de dados Room (`AppDatabase.kt`, `WeatherDao.kt`).
 
 ## 🛠️ Construído Com
 
