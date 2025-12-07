@@ -1,47 +1,3 @@
-# Weather Forecast API App
-
-This is a simple Android application that displays the current weather for selected cities in Portugal. It's built using modern Android development practices.
-
-**Note:** This project was developed as an academic work. You can find the source code on [GitHub](https://github.com/BarreiroReSird/WeatherAPI).
-
-## 🚀 Features
-
-- **Current Weather:** View the current temperature and wind speed.
-- **City Selection:** Choose from a list of Portuguese district capitals.
-- **Data Caching:** Weather data is cached locally using a Room database, allowing for offline access to the last fetched data.
-- **API Integration:** Fetches live weather data from the [Open-Meteo API](https://open-meteo.com/).
-- **Modern UI:** The user interface is built entirely with Jetpack Compose.
-- **Last Updated Timestamp:** Shows when the weather data was last successfully fetched from the API.
-
-## 🏛️ Application Architecture
-
-The application follows the MVVM (Model-View-ViewModel) architectural pattern.
-
--   **UI (View):** Built with Jetpack Compose (`MainActivity.kt`, `WeatherScreen.kt`, `AboutScreen.kt`). The UI observes the state exposed by the `WeatherViewModel` and renders the weather information.
--   **ViewModel (`WeatherViewModel.kt`):** Acts as a bridge between the UI and the data layer. It holds the application's state, fetches data from the repository, and exposes it to the UI.
--   **Repository/Data Layer:** This layer is responsible for fetching data. It consists of:
-    -   **Remote Data Source:** Fetches live weather data from the Open-Meteo API using OkHttp (`WeatherViewModel.kt`).
-    -   **Local Data Source:** Caches weather data in a Room database (`AppDatabase.kt`, `WeatherDao.kt`).
-
-## 🛠️ Built With
-
-- **[Kotlin](https://kotlinlang.org/):** The primary programming language.
-- **[Jetpack Compose](https://developer.android.com/jetpack/compose):** For building the native UI.
-- **[MVVM Architecture](https://developer.android.com/jetpack/guide):** For a clean and scalable app structure.
-- **[Kotlin Coroutines & Flow](https://kotlinlang.org/docs/coroutines-guide.html):** For managing background threads and asynchronous data streams.
-- **[Room](https://developer.android.com/jetpack/androidx/releases/room):** For local database storage and caching.
-- **[OkHttp](https://square.github.io/okhttp/):** For making network requests to the weather API.
-- **[Android Jetpack Libraries](https://developer.android.com/jetpack):** Including ViewModel, Navigation, and Lifecycle components.
-
-## ⚙️ How to Build
-
-1.  Clone this repository.
-2.  Open the project in the latest version of Android Studio.
-3.  Let Gradle sync the project dependencies.
-4.  Build and run the `app` module on an Android emulator or a physical device.
-
----
-
 # Aplicação de Previsão do Tempo (API)
 
 Esta é uma aplicação Android simples que mostra a previsão do tempo atual para cidades selecionadas em Portugal. É construída com práticas modernas de desenvolvimento Android.
@@ -83,3 +39,47 @@ A aplicação segue o padrão de arquitetura MVVM (Model-View-ViewModel).
 2.  Abra o projeto na versão mais recente do Android Studio.
 3.  Deixe o Gradle sincronizar as dependências do projeto.
 4.  Compile e execute o módulo `app` num emulador Android ou num dispositivo físico.
+
+---
+
+# Weather Forecast API App
+
+This is a simple Android application that displays the current weather for selected cities in Portugal. It's built using modern Android development practices.
+
+**Note:** This project was developed as an academic work. You can find the source code on [GitHub](https://github.com/BarreiroReSird/WeatherAPI).
+
+## 🚀 Features
+
+- **Current Weather:** View the current temperature and wind speed.
+- **City Selection:** Choose from a list of Portuguese district capitals.
+- **Data Caching:** Weather data is cached locally using a Room database, allowing for offline access to the last fetched data.
+- **API Integration:** Fetches live weather data from the [Open-Meteo API](https://open-meteo.com/).
+- **Modern UI:** The user interface is built entirely with Jetpack Compose.
+- **Last Updated Timestamp:** Shows when the weather data was last successfully fetched from the API.
+
+## 🏛️ Application Architecture
+
+The application follows the MVVM (Model-View-ViewModel) architectural pattern.
+
+-   **UI (View):** Built with Jetpack Compose (`MainActivity.kt`, `WeatherScreen.kt`, `AboutScreen.kt`). The UI observes the state exposed by the `WeatherViewModel` and renders the weather information.
+-   **ViewModel (`WeatherViewModel.kt`):** Acts as a bridge between the UI and the data layer. It holds the application's state, fetches data from the repository, and exposes it to the UI.
+-   **Repository/Data Layer:** This layer is responsible for fetching data. It consists of:
+    -   **Remote Data Source:** Fetches live weather data from the Open-Meteo API using OkHttp (`WeatherViewModel.kt`).
+    -   **Local Data Source:** Caches weather data in a Room database (`AppDatabase.kt`, `WeatherDao.kt`).
+
+## 🛠️ Built With
+
+- **[Kotlin](https://kotlinlang.org/):** The primary programming language.
+- **[Jetpack Compose](https://developer.android.com/jetpack/compose):** For building the native UI.
+- **[MVVM Architecture](https://developer.android.com/jetpack/guide):** For a clean and scalable app structure.
+- **[Kotlin Coroutines & Flow](https://kotlinlang.org/docs/coroutines-guide.html):** For managing background threads and asynchronous data streams.
+- **[Room](https://developer.android.com/jetpack/androidx/releases/room):** For local database storage and caching.
+- **[OkHttp](https://square.github.io/okhttp/):** For making network requests to the weather API.
+- **[Android Jetpack Libraries](https://developer.android.com/jetpack):** Including ViewModel, Navigation, and Lifecycle components.
+
+## ⚙️ How to Build
+
+1.  Clone this repository.
+2.  Open the project in the latest version of Android Studio.
+3.  Let Gradle sync the project dependencies.
+4.  Build and run the `app` module on an Android emulator or a physical device.
